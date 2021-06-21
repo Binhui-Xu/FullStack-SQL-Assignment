@@ -1,1 +1,1 @@
-# FullStack-SQL-Assignment-Day8
+# FullStack-SQL-Assignments
