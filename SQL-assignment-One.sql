@@ -1,4 +1,4 @@
-SELECT ProductID,Name,Color,ListPrice from Production.Product
+SELECT ProductID,Name,Color,ListPrice from Production.Product 
 SELECT ProductID,Name,Color,ListPrice from Production.Product where ListPrice=0
 SELECT ProductID,Name,Color,ListPrice from Production.Product where Color is NULL
 SELECT ProductID,Name,Color,ListPrice from Production.Product where Color is not NULL
