@@ -148,7 +148,7 @@ ON o.CustomerID=c.CustomerID
 INNER JOIN dbo.[Order Details] od
 ON o.OrderID=od.OrderID
 GROUP BY c.ContactName
-HAVING Sum(Quantity)>100
+HAVING Sum(Quantity)>100 
 --23
 SELECT si.CompanyName,su.CompanyName
 FROM dbo.Shippers si cross JOIN dbo.Suppliers su
