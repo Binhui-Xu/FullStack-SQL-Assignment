@@ -1,5 +1,5 @@
 /*
-    1.	What is an object in SQL?
+    1.	What is an object in SQL? 
         An object type can represent any real-world entity. SQL objects are schemas, journals, catalogs, tables, 
         aliases, views,indexes,constrains, triggers,masks, permissions,sequences, stored procedures,user-defined functions,
         user-defined types, global variables, and SQL packages. SQL creates and maintain these objects as system objects
