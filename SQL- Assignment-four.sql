@@ -148,6 +148,6 @@ WHERE [Middle Name] is not null
 --15
 SELECT top 1 marks,RANK() over(order by marks desc) as rnk from table2
 where sex='F'
-ORDER BY rnk
+ORDER BY rnk 
 --16
 SELECT *,rank() OVER(partion by sex border by marks desc) as rnk from table2
