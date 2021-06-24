@@ -91,7 +91,24 @@ select name,sum(p.person_id) as sum FROM Person p join Person m
 on p.manager_id=m.person_id
 where p.person_is in vwMng
 --4
-/* [insert|delete|update] */
+/* 
+    --> [insert | delete | update] statement on a specific table
+    --> A [CREATE | ALTER | DROP] statement on any chema object
+    --> A database startup or instance shutdown
+    --> A specific error message or any error message
+    --> A user logon or logoff
+*/
 --5
-
+CREATE TABLE Divisions(
+    Dname varchar(50) primary key,
+    Location foreign key references Locations(location) on delete set null on update cascade)
+CREATE TABLE Locations(location varchar(50) not null)
+CREATE TABLE Contacts(
+    ContactID int not null unique,
+    ContactName VARCHAR(30) not null,
+    Address VARCHAR(100),suite int not null)
+CREATE TABLE company(
+    Cname varchar(100) primary key,
+    DName varchar(50) foreign key Divisions(DName),
+    ContactName varchar(30) foreign key REFERENCES Contacts(ContactName) on delete set null on update cascade)
 
