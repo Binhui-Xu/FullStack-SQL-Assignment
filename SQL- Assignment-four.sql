@@ -53,43 +53,125 @@
 */
 
 --1
-INSERT into dbo.Region VALUES('Middle Earth')
-INSERT into dbo.Territories  VALUEs('Gondor')
-INSERT into dbo.Employees VALUES('Aragorn King')
+--a
+BEGIN TRAN
+select * FROM Region
+SELECT * FROM Territories
+SELECT * FROM Employees
+SELECT * FROM EmployeeTerritories
+
+INSERT into dbo.Region VALUES(6,'Middle Earth')
+IF @@ERROR<>0
+ROLLBACK 
+ELSE BEGIN
+--b
+INSERT into dbo.Territories  VALUES(98105,'Gondor',6)
+DECLARE @error INT = @@ERROR
+IF @error <> 0
+BEGIN 
+PRINT @error
+ROLLBACK
+END
+ELSE BEGIN
+--c
+INSERT INTO Employees VALUES('Aragorn',	'King'	,'Sales Representative',	'Ms.'	,'1966-01-27 00:00:00.000','1994-11-15 00:00:00.000', 'Houndstooth Rd.',	'London',	NULL	,'WG2 7LT',	'UK',	'(71) 555-4444'	,452,NULL,	'Anne has a BA degree in English from St. Lawrence College.  She is fluent in French and German.',	5,	'http://accweb/emmployees/davolio.bmp/')
+INSERT INTO EmployeeTerritories VALUES(@@IDENTITY,98105)
+DECLARE @error2 int = @@error
+IF @error <>0
+BEGIN
+PRINT @error
+ROLLBACK
+END
+ELSE BEGIN
+
 --2
-UPDATE dbo.Territories set TerritoryDescription='Arnor' WHERE TerritoryDescription='Gondor'
+UPDATE dbo.Territories 
+set TerritoryDescription='Arnor' 
+WHERE TerritoryDescription='Gondor'
+IF @@ERROR<>0 
+ROLLBACK 
+ELSE BEGIN
 --3
-DELETE from Region where RegionDescription='Middle Earth'
+delete from EmployeeTerritories
+where TerritoryID in(select TerritoryID from Territories where TerritoryDescription='Arnor')
+delete from Territories
+WHERE TerritoryDescription='Arnor'
+DELETE from Region 
+where RegionDescription='Middle Earth'
+IF @@ERROR<>0
+ROLLBACK
+ELSE BEGIN
+COMMIT
+END
+END 
+END
+END
+END 
 --4
 CREATE VIEW view_product_order_xu AS
-SELECT distinct productID,sum(Quantity) totoalOrdered
-FROM Orders o JOIN [Order Details] od
-ON o.OrderID=od.OrderID
-GROUP BY ProductID;
+SELECT productName,sum(Quantity) totoalOrdered
+FROM Products p JOIN [Order Details] od
+ON p.ProductID=od.ProductID
+GROUP BY ProductName;
 --5
-CREATE PROCEDURE sp_product_order_quantity_xu @productid int
+ALTER PROCEDURE sp_product_order_quantity_xu 
+@productid int,
+@TotalOrderQty int out
 AS
-SELECT sum(quantity) from [Order Details] where productID=@productid GROUP BY ProductID
-GO
-EXEC sp_product_order_quantity_xu
+BEGIN
+SELECT @TotalOrderQty= sum(quantity) from [Order Details] od join Products p on p.ProductName=od.ProductID 
+where p.productID=@productid 
+GROUP BY ProductName
+END
+
+DECLARE @Tot INT
+EXEC sp_product_order_quantity_xu 11,@Tot out
+print @Tot
 --6
-CREATE PROCEDURE sp_product_order_city_xu @productname nvarchar(30)
+CREATE PROCEDURE sp_product_order_city_xu 
+@productname nvarchar(30)
 AS 
-SELECT top 5 o.shipcity,p.ProductName,sum(quantity) total
+BEGIN
+SELECT top 5 o.shipcity,sum(quantity) total
 FROM [Order Details] od JOIN Products p
 ON od.ProductID=p.ProductID
 JOIN Orders o
 ON od.OrderID=o.OrderID
-WHERE p.ProductName='Chai'
+WHERE p.ProductName=@productname
 GROUP BY ShipCity,ProductName
 ORDER BY sum(Quantity) DESC
-GO
-EXEC sp_product_order_city_xu
+END
+
+EXEC sp_product_order_city_xu 'Queso Cabrales'
 --7
-CREATE PROCEDURE sp_move_employees_xu 
-AS
-select * FROM Employees e JOIN Region r on e.Region=r.RegionID JOIN Territories t on r.RegionID=t.RegionID
-WHERE TerritoryDescription='Tory'
+BEGIN TRAN
+select * FROM Region
+SELECT * FROM Territories
+SELECT * FROM Employees
+SELECT * FROM EmployeeTerritories
+GO
+ALTER PROC sp_move_employees_xu
+AS BEGIN
+IF exists(select employeeID from EmployeeTerritories where TerritoryID=(select TerritoryID from Territories where TerritoryDescription='Troy'))
+BEGIN
+DECLARE @TerritoryID INT
+SELECT @TerritoryID=MAX(@TerritoryID) from Territories
+begin TRAN
+INSERT into Territories VALUES(@TerritoryID+1,'Stevens Point',3)
+UPDATE EmployeeTerritories
+SET TerritoryID=@TerritoryID+1
+WHERE EmployeeID IN (select EmployeeID from EmployeeTerritories where TerritoryID=(select TerritoryID from Territories where TerritoryDescription='Troy'))
+IF @@ERROR<>0
+BEGIN
+ROLLBACK
+END
+ELSE
+COMMIT
+END
+
+END
+
+EXEC sp_move_employees_xu
 
 --8
 
