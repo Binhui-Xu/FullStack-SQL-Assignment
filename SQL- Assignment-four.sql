@@ -174,34 +174,75 @@ END
 EXEC sp_move_employees_xu
 
 --8
+CREATE TRIGGER tr_move_emp_xu
+ON employeeTerritories 
+after INSERT
+AS
+DECLARE @EmpCOunt INT
+select @EmpCount=COUNT(*) from EmployeeTerritories WHERE TerritoryID=(select TerritoryID from Territories where TerritoryDescription='Steven Point' and RegionID=3) group by EmployeeID
+IF (@EmpCOunt>100)
+BEGIN
+UPDATE EmployeeTerritories
+SET TerritoryID=(select TerritoryID from Territories where TerritoryDescription='Troy')
+WHERE EmployeeID IN (select EmployeeID from EmployeeTerritories where TerritoryID =(select TerritoryID from Territories where TerritoryDescription='Steven Point' and RegionID=3))
+END
+
+DROP TRIGGER tr_move_emp_xu
+COMMIT
 
 --9
-create table people_xu (id int primary key,city VARCHAR(30) not null)
-INSERT INTO people_xu(id,city) VALUES(1,'Seattle')
-INSERT INTO people_xu(id,city) VALUES(2,'Green Bay')
-CREATE TABLE city_xu(id int primary key, name varchar(20),city int)
-INSERT into city_xu(id,name,city) VALUES(1,'Aaron Rodgers',2)
-INSERT into city_xu(id,name,city) VALUES(2,'Russell Wilson',1)
-INSERT into city_xu(id,name,city) VALUES(3,'Jody Nelson',2)
+create table city_xu (id int primary key,city VARCHAR(30) not null)
+CREATE TABLE people_xu(id int primary key, name varchar(20),city int)
+BEGIN TRAN
+INSERT INTO city_xu(id,city) VALUES(1,'Seattle')
+INSERT INTO city_xu(id,city) VALUES(2,'Green Bay')
+INSERT into people_xu(id,name,city) VALUES(1,'Aaron Rodgers',1)
+INSERT into people_xu(id,name,city) VALUES(2,'Russell Wilson',2)
+INSERT into people_xu(id,name,city) VALUES(3,'Jody Nelson',2)
+IF exists(select id from people_xu where city=(select id from city_xu where city='Seatle'))
+BEGIN
+insert into city_xu VALUES(3,'Madison')
+update people_xu
+set city='Madison'
+where id in (select id from people_xu where city =(select id from city_xu where city='Seatle'))
+END
+DELETE from city_xu WHERE city='Seatle'
 
-CREATE VIEW Packers_binhuixu AS
-SELECT c.name FROM people_xu p JOIN city_xu c
-ON p.id=c.city
-WHERE p.city='Green Bay'
+CREATE VIEW Packers_xu AS
+SELECT name FROM people_xu
+WHERE city='Green Bay'
+
+SELECT * FROM Packers_xu
+COMMIT
+DROP TABLE people_xu
+DROP TABLE city_xu
+DROP VIEW Packers_xu
+
 --10
-CREATE PROCEDURE sp_birthday_employees_xu 
+ALTER PROCEDURE sp_birthday_employees_xu 
 as 
+BEGIN
 SELECT * into birthday_employees_xu FROM Employees e where 1=0
 INSERT into birthday_employees_xu 
 SELECT * FROM Employees e
-WHERE Month(e.BirthDate)=2
-GO
+WHERE Month(e.BirthDate)=02
+END
 EXEC sp_birthday_employees_xu
 
 drop table birthday_employees_xu
+
+--answer
+ALTER PROC sp_birthday_employee_xu
+as 
+BEGIN
+SELECT * into #EmployeeTemp
+FROM Employees WHERE DATEPART(MM,BirthDate)=02
+SELECT * FROM #EmployeeTemp
+END
 --11.1
 CREATE PROCEDURE sp_xu_1 
 AS
+BEGIN
 SELECT distinct City from Customers
 WHERE CustomerID in (
 SELECT distinct customerID
@@ -212,11 +253,26 @@ HAVING COUNT(*)<=1
 )
 GROUP BY City
 HAVING count(CustomerID)>=2
+END
 GO
 EXEC sp_xu_1
+GO
 --11.2
+--answer
 create PROCEDURE sp_xu_2 
 AS
+BEGIN
+SELECT city FROM Customers
+GROUP BY City
+HAVING count(*)>2
+INTERSECT
+SELECT city FROM Customers c JOIN Orders o ON o.CustomerID=c.CustomerID JOIN [Order Details] od ON o.OrderID=od.OrderID
+GROUP BY od.ProductID,c.CustomerID,City
+HAVING COUNT(*) BETWEEN 0 and 1
+END
+GO
+EXEC sp_xu_2
+Go
 
 --12
 select * FROM table1
@@ -227,9 +283,13 @@ select * from table2
 SELECT [First Name]+' '+[Last Name]+' '+[Middle Name]+'.' as [Full Name]
 FROM table1
 WHERE [Middle Name] is not null
+UNION
+SELECT [First Name]+' '+[Last Name] as [Full Name]
+FROM table1
+WHERE [Middle Name] is null
 --15
 SELECT top 1 marks,RANK() over(order by marks desc) as rnk from table2
 where sex='F'
-ORDER BY rnk 
+ORDER BY rnk
 --16
-SELECT *,rank() OVER(partion by sex border by marks desc) as rnk from table2
+SELECT *,rank() OVER(partition by sex order by marks desc) as rnk from table2 ORDER BY rnk
