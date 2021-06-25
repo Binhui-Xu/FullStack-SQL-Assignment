@@ -292,4 +292,4 @@ SELECT top 1 marks,RANK() over(order by marks desc) as rnk from table2
 where sex='F'
 ORDER BY rnk
 --16
-SELECT *,rank() OVER(partition by sex order by marks desc) as rnk from table2 ORDER BY rnk
+SELECT *,rank() OVER(partition by sex order by marks desc) as rnk from table2 ORDER BY rnk 
