@@ -77,10 +77,26 @@ from Customer c JOIN Order o
 ON c.cust_id=o.cust_id
 GROUP BY c.cust_id,c.iname
 WHERE YEAR(o.order_date)=2000
+
+--answer
+SELECT CustomerID as cust_id,CustomerName as iname INTO #customer FROM Customers
+
+SELECT od.OrderID as order_id,customerID as cust_id,unitePrice as amount,OrderDate as order_date into #order 
+FROM Orders o JOIN [Order details] od ON o.OrderID=od.OrderID
+
+select c.iname,sum(amount) FROM #customer c JOIN #order o ON o.cust_id=c.cust_id
+WHERE DATEPART(yyyy,order_date)='2000'
+GROUP BY c.iname
 --2
 CREATE TABLE Person(id int, firstname varchar(100),lastname varchar(100))
 
 SELECT * FROM Person WHERE lastname like 'A%'
+
+--answer
+DECLARE @person TABLE(id int,firstnme nvarchar(100),lastname nvarchar(100))
+INSERT INTO @person
+SELECT EmployeeID,FirstName,LastName FROM Employees
+select * from @person WHERE lastname like 'A%'
 --3
 CREATE TABLE Person(person_id int primary key,manager_is int not null,name carchar(100) not null)
 
@@ -90,6 +106,13 @@ select person_id from Person where manager_id is NULL
 select name,sum(p.person_id) as sum FROM Person p join Person m
 on p.manager_id=m.person_id
 where p.person_is in vwMng
+
+--answer
+DECLARE @person1 TABLE(person_id int,mng_id int,name nvarchar(100))
+INSERT INTO @person1
+SELECT EmployeeID,ReportsTo,FirstName+' '+LastName from Employees
+SELECT person_id,(select count(*) from @person1 p2 where p2.mng_id=p1.person_id GROUP BY mng_id) as numOfEmps from @person1 p1
+where mng_id is null and person_id in (select mng_id from @person1)
 --4
 /* 
     --> [insert | delete | update] statement on a specific table
